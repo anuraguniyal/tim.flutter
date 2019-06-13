@@ -136,26 +136,12 @@ class _ContactWidgetState extends State<ContactWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
-      onLongPress: () {
-        setState(() {
-          selected = !selected;
-        });
-        widget.callback(widget.index);
-      },
-      onTap: () {
-        setState(() {
-          selected = !selected;
-        });
-        widget.callback(widget.index);
-      },
-      child: new Container(
+    return  Container(
         child: _mainWidget(),
         decoration: selected
-            ? new BoxDecoration(color: Colors.green[100])
+            ? new BoxDecoration(color: Colors.blue[50])
             : new BoxDecoration(),
-      )
-    );
+      );
   }
 
   Widget _mainWidget(){
@@ -174,7 +160,18 @@ class _ContactWidgetState extends State<ContactWidget> {
         ),
       ),
       trailing: Icon(Icons.more_vert),
-
+      onLongPress: () {
+        setState(() {
+          selected = !selected;
+        });
+        widget.callback(widget.index);
+      },
+      onTap: () {
+        setState(() {
+          selected = !selected;
+        });
+        widget.callback(widget.index);
+      },
     );
   }
 }
