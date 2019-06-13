@@ -3,7 +3,10 @@ import 'package:english_words/english_words.dart';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-String _C(String s) => s[0].toUpperCase() + s.substring(1);
+String _C(String s) {
+  if(s == null) return "";
+  return s[0].toUpperCase() + s.substring(1);
+}
 
 void main() => runApp(MyApp());
 
@@ -16,47 +19,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class RandomWordsState extends State<RandomWords> {
-  final _suggestions = <WordPair>[];
-  final _biggerFont = const TextStyle(fontSize: 18.0);
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Startup Name Generator'),
-      ),
-      body: _buildSuggestions(),
-    );
-  }
-
-  Widget _buildSuggestions() {
-    return ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemBuilder: /*1*/ (context, i) {
-          if (i.isOdd) return Divider(); /*2*/
-
-          final index = i ~/ 2; /*3*/
-          if (index >= _suggestions.length) {
-            _suggestions.addAll(generateWordPairs().take(10)); /*4*/
-          }
-          return _buildRow(_suggestions[index]);
-        });
-  }
-
-  Widget _buildRow(WordPair pair) {
-    return ListTile(
-      title: Text(
-        pair.asPascalCase,
-        style: _biggerFont,
-      ),
-    );
-  }
-}
-
-class RandomWords extends StatefulWidget {
-  @override
-  RandomWordsState createState() => RandomWordsState();
-}
 
 class ContactPhone{
   final Item phone;
@@ -70,7 +32,7 @@ Future<List<ContactPhone>> fetchContacts() async {
   Iterable<Contact> contacts;
   List<ContactPhone> phones = new List();
   try {
-    contacts = await ContactsService.getContacts();
+    contacts = await ContactsService.getContacts(withThumbnails: false);
     contacts.forEach((contact) =>
       contact.phones.forEach((phone) => phones.add(ContactPhone(phone: phone, contact: contact)))
     );
@@ -82,16 +44,21 @@ Future<List<ContactPhone>> fetchContacts() async {
   return phones;
 }
 
-class ContactListWidget extends StatelessWidget {
+class ContactListWidget extends StatefulWidget {
+  @override
+  _ContactListWidgetState createState() => new _ContactListWidgetState();
+}
 
+class _ContactListWidgetState extends State<ContactListWidget> {
   List<ContactPhone> _contacts;
-  final _nameStyle = const TextStyle(fontSize: 18.0,
-          fontWeight: FontWeight.bold,
-          color: Colors.black
-      );
+  List<int> selected = new List();
 
   @override
   Widget build(BuildContext context) {
+    return _mainWidget();
+  }
+
+  Widget _mainWidget(){
     return Scaffold(
         appBar:  AppBar(
           title:  Text.rich(
@@ -124,29 +91,85 @@ class ContactListWidget extends StatelessWidget {
   }
 
   Widget _buildList() {
-    return ListView.separated(
+    return ListView.builder(
         //padding: const EdgeInsets.all(16.0),
         itemCount: _contacts.length,
-        separatorBuilder: (context, index) => Divider(
+        /*separatorBuilder: (context, index) => Divider(
           color: Colors.black,
-        ),
+        ),*/
         itemBuilder: (context, i) {
-          return _buildRow(_contacts.elementAt(i));
+          return ContactWidget(
+              index: i,
+              phone: _contacts.elementAt(i),
+              callback: _callback
+          );
         });
   }
 
-  Widget _buildRow(ContactPhone phone) {
+  void _callback(int index){
+    if (selected.contains(index)) {
+      selected.remove(index);
+    } else {
+      selected.add(index);
+    }
+  }
+
+}
+
+class ContactWidget extends StatefulWidget {
+  final int index;
+  final ContactPhone phone;
+  final void Function(int) callback;
+
+  const ContactWidget({Key key, this.index, this.phone, this.callback}) : super(key: key);
+
+  @override
+  _ContactWidgetState createState() => new _ContactWidgetState();
+}
+
+class _ContactWidgetState extends State<ContactWidget> {
+  bool selected = false;
+  final _nameStyle = const TextStyle(fontSize: 18.0,
+      fontWeight: FontWeight.bold,
+      color: Colors.black
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      onLongPress: () {
+        setState(() {
+          selected = !selected;
+        });
+        widget.callback(widget.index);
+      },
+      onTap: () {
+        setState(() {
+          selected = !selected;
+        });
+        widget.callback(widget.index);
+      },
+      child: new Container(
+        child: _mainWidget(),
+        decoration: selected
+            ? new BoxDecoration(color: Colors.green[100])
+            : new BoxDecoration(),
+      )
+    );
+  }
+
+  Widget _mainWidget(){
     return ListTile(
-      leading: Icon(Icons.phone),
+      leading: selected ? Icon(Icons.check_circle_outline): Icon(Icons.phone),
       title: Text(
-        _C(phone.contact.givenName)+' '+_C(phone.contact.familyName),
+        _C(widget.phone.contact.givenName)+' '+_C(widget.phone.contact.familyName),
         style: _nameStyle,
       ),
       subtitle: Text.rich(
         TextSpan(
-          text: _C(phone.phone.label)+' ', // default text style
+          text: _C(widget.phone.phone.label)+' ', // default text style
           children: <TextSpan>[
-            TextSpan(text: phone.phone.value, style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: widget.phone.phone.value, style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
       ),
