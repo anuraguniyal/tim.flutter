@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Welcome to Flutter',
+      title: 'Time is Money',
       home: ContactListWidget());
   }
 }
@@ -101,34 +101,40 @@ class _ContactListWidgetState extends State<ContactListWidget> {
           return ContactWidget(
               index: i,
               phone: _contacts.elementAt(i),
-              callback: _callback
+              selected: _selected,
+              isSelected: _isSelected
           );
         });
   }
 
-  void _callback(int index){
-    if (selected.contains(index)) {
-      selected.remove(index);
-    } else {
-      selected.add(index);
-    }
+  void _selected(int index){
+    setState(() {
+      if (selected.contains(index)) {
+        selected.remove(index);
+      } else {
+        selected.add(index);
+      }
+    });
+
   }
+  bool _isSelected(int index) => selected.contains(index);
 
 }
 
 class ContactWidget extends StatefulWidget {
   final int index;
   final ContactPhone phone;
-  final void Function(int) callback;
+  final void Function(int) selected;
+  final bool Function(int) isSelected;
 
-  const ContactWidget({Key key, this.index, this.phone, this.callback}) : super(key: key);
+  const ContactWidget({Key key, this.index, this.phone, this.selected, this.isSelected}) : super(key: key);
 
   @override
   _ContactWidgetState createState() => new _ContactWidgetState();
 }
 
 class _ContactWidgetState extends State<ContactWidget> {
-  bool selected = false;
+
   final _nameStyle = const TextStyle(fontSize: 18.0,
       fontWeight: FontWeight.bold,
       color: Colors.black
@@ -138,7 +144,7 @@ class _ContactWidgetState extends State<ContactWidget> {
   Widget build(BuildContext context) {
     return  Container(
         child: _mainWidget(),
-        decoration: selected
+        decoration: widget.isSelected(widget.index)
             ? new BoxDecoration(color: Colors.blue[50])
             : new BoxDecoration(),
       );
@@ -146,7 +152,7 @@ class _ContactWidgetState extends State<ContactWidget> {
 
   Widget _mainWidget(){
     return ListTile(
-      leading: selected ? Icon(Icons.check_circle_outline): Icon(Icons.phone),
+      leading: widget.isSelected(widget.index) ? Icon(Icons.check_circle_outline): Icon(Icons.phone),
       title: Text(
         _C(widget.phone.contact.givenName)+' '+_C(widget.phone.contact.familyName),
         style: _nameStyle,
@@ -161,16 +167,13 @@ class _ContactWidgetState extends State<ContactWidget> {
       ),
       trailing: Icon(Icons.more_vert),
       onLongPress: () {
-        setState(() {
-          selected = !selected;
-        });
-        widget.callback(widget.index);
+        widget.selected(widget.index);
+        //empty set state to update ui
+        // but it doesn't work so setting state in parent
+        setState(() {});
       },
       onTap: () {
-        setState(() {
-          selected = !selected;
-        });
-        widget.callback(widget.index);
+        widget.selected(widget.index);
       },
     );
   }
