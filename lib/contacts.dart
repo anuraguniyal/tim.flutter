@@ -4,11 +4,6 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'utils.dart';
 
-class ContactPhone{
-  final Item phone;
-  final Contact contact;
-  ContactPhone({this.phone, this.contact});
-}
 
 Future<List<ContactPhone>> fetchContacts() async {
 
@@ -29,13 +24,20 @@ Future<List<ContactPhone>> fetchContacts() async {
 }
 
 class ContactListWidget extends StatefulWidget {
+  String nextName;
+  Function nextFunc;
   @override
-  capontactListWidgetState createState() => new capontactListWidgetState();
+  ContactListWidget(this.nextName, this.nextFunc);
+  _contactListWidgetState createState() => new _contactListWidgetState(nextName, nextFunc);
 }
 
-class capontactListWidgetState extends State<ContactListWidget> {
+class _contactListWidgetState extends State<ContactListWidget> {
   List<ContactPhone> _contacts;
   List<int> selected = new List();
+  String nextName;
+  Function nextFunc;
+
+  _contactListWidgetState(this.nextName, this.nextFunc);
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +55,20 @@ class capontactListWidgetState extends State<ContactListWidget> {
             ],
           ),
         ),
+        actions: [
+          FlatButton.icon(
+            color: Colors.green,
+            onPressed: (){
+                //get selected contacts
+                List<ContactPhone> contacts = new List();
+                selected.forEach((i)=>contacts.add(_contacts[i]));
+                this.nextFunc(contacts);
+              },
+            padding: EdgeInsets.all(8.0),
+            splashColor: Colors.greenAccent,
+            icon: Icon(Icons.add_alert),
+            label: Text(this.nextName))
+      ]
       ),
       body: Center(
         child: FutureBuilder<List<ContactPhone>>(

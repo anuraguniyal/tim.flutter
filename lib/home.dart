@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'homescreen.dart';
+import 'contacts.dart';
+import 'timwidget.dart';
+import 'utils.dart';
 
 class HomeWidget extends StatefulWidget {
   HomeWidget({Key key}) : super(key: key);
@@ -12,10 +16,7 @@ class _HomeWidgetState extends State<HomeWidget> {
   static const TextStyle optionStyle =
   TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Home',
-      style: optionStyle,
-    ),
+    const HomeScreen(),
     Text(
       'Profile',
       style: optionStyle,
@@ -38,9 +39,7 @@ class _HomeWidgetState extends State<HomeWidget> {
       appBar: AppBar(
         title: const Text('Time is Money'),
       ),
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
+      body:  _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -60,6 +59,31 @@ class _HomeWidgetState extends State<HomeWidget> {
         selectedItemColor: Colors.amber[800],
         onTap: _onItemTapped,
       ),
+      //floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        onPressed: _onAddTim,
+        tooltip: 'Add Tim',
+        child: const Icon(Icons.add_alert),
+      )
+    );
+  }
+
+  void _onAddTim(){
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return Contacts
+        return ContactListWidget("Create Tim", _onCreateTim);
+      },
+    );
+  }
+
+  void _onCreateTim(List<ContactPhone> contacts){
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return TimWidget(contacts);
+      },
     );
   }
 }
